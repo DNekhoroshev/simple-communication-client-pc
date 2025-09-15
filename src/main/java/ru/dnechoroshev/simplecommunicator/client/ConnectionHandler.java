@@ -7,6 +7,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import ru.dnechoroshev.simplecommunicator.audio.AudioPlayer;
 import ru.dnechoroshev.simplecommunicator.audio.MicrophoneReader;
+import ru.dnechoroshev.simplecommunicator.configuration.ClientProperties;
 import ru.dnechoroshev.simplecommunicator.model.ConnectionDto;
 
 import java.io.DataInputStream;
@@ -27,7 +28,8 @@ public class ConnectionHandler {
 
     private final ExecutorService techPool =  Executors.newSingleThreadExecutor();
 
-    private static final String SERVER_ADDRESS = "127.0.0.1";
+    private final ClientProperties clientProperties;
+
     private static final int WAITING_FOR_RESPONSE = 0xFFAA001;
     private static final int CONNECTION_STARTING = 0xFFAA002;
     private static final int CONNECTION_TIMEOUT = 0xFFAA003;
@@ -36,9 +38,9 @@ public class ConnectionHandler {
     private boolean alive;
 
     public void handleConnection(@NonNull ConnectionDto connection) {
-        log.info("Соединяемся с {}:{}", SERVER_ADDRESS, connection.port());
+        log.info("Соединяемся с {}:{}", clientProperties.getServerHost(), connection.port());
         techPool.submit(() -> {
-            try (Socket socket = new Socket(SERVER_ADDRESS, connection.port())) {
+            try (Socket socket = new Socket(clientProperties.getServerHost(), connection.port())) {
                 log.info("Соединение установлено");
                 alive = true;
                 InputStream inputStream = socket.getInputStream();
@@ -69,11 +71,9 @@ public class ConnectionHandler {
                 inputAudioReaderThread.join();
                 outputAudioWriterThread.join();
                 log.info("Разговор завершен");
-            } catch (UnknownHostException e) {
+            } catch (UnknownHostException | InterruptedException e) {
                 throw new RuntimeException(e);
             } catch (IOException e) {
-                throw new RuntimeException(e);
-            } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             } finally {
                 alive = false;

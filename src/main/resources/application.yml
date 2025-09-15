@@ -2,5 +2,6 @@ server:
   port: 8081
 
 general:
-  client-name: Bot
+  client-name: Bot2
   serverUrlBase: http://localhost:8080/connection
+  serverHost: 192.168.1.11

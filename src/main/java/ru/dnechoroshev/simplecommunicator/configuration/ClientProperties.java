@@ -10,4 +10,5 @@ import org.springframework.context.annotation.Configuration;
 public class ClientProperties {
     private String clientName;
     private String serverUrlBase;
+    private String serverHost;
 }
