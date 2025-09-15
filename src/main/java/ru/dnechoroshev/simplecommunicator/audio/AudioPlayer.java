@@ -85,16 +85,16 @@ public class AudioPlayer {
 
                 byte[] buffer = new byte[4096];
                 int bytesRead;
-
+                int totalBytes = 0;
                 while (isPlaying && (bytesRead = audioStream.read(buffer)) != -1) {
                     if (bytesRead > 0) {
                         sourceDataLine.write(buffer, 0, bytesRead);
+                        totalBytes += bytesRead;
                     }
                 }
-                log.info("Закрытие потока передачи аудио 1");
                 sourceDataLine.drain();
                 sourceDataLine.stop();
-                log.info("Закрытие потока передачи аудио");
+                log.info("Закрытие потока передачи аудио. Прочитано байт {}", totalBytes);
             } catch (IOException e) {
                 if (isPlaying) {
                     log.error("Ошибка при чтении потока", e);
@@ -119,6 +119,7 @@ public class AudioPlayer {
             if (sourceDataLine != null && sourceDataLine.isOpen()) {
                 sourceDataLine.stop();
                 sourceDataLine.close();
+                sourceDataLine = null;
             }
             streamToPlay.close();
         } catch (IOException e) {

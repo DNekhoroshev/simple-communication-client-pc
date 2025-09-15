@@ -60,7 +60,7 @@ public class CallProcessor {
     }
 
     @Scheduled(fixedRate = 5000)
-    public void reportCurrentTime() {
+    public void checkForIncomingCall() {
 
         String url = UriComponentsBuilder.fromHttpUrl(clientProperties.getServerUrlBase() + "/checkInvocation")
                 .queryParam("callee", clientProperties.getClientName())

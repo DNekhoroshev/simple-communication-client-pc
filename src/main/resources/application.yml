@@ -2,5 +2,5 @@ server:
   port: 8081
 
 general:
-  client-name: Dima
+  client-name: Bot
   serverUrlBase: http://localhost:8080/connection

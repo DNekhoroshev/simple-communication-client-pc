@@ -17,7 +17,7 @@ public class MicrophoneReader {
 
     public MicrophoneReader() {
         // Настройка формата аудио: 16kHz, 16-bit, моно
-        audioFormat = new AudioFormat(16000.0f, 16, 1, true, true);
+        audioFormat = new AudioFormat(16000.0f, 16, 1, true, false);
     }
 
     /**

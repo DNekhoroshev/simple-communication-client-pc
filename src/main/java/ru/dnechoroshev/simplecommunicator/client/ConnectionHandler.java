@@ -9,6 +9,7 @@ import ru.dnechoroshev.simplecommunicator.audio.AudioPlayer;
 import ru.dnechoroshev.simplecommunicator.audio.MicrophoneReader;
 import ru.dnechoroshev.simplecommunicator.model.ConnectionDto;
 
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
@@ -27,6 +28,9 @@ public class ConnectionHandler {
     private final ExecutorService techPool =  Executors.newSingleThreadExecutor();
 
     private static final String SERVER_ADDRESS = "127.0.0.1";
+    private static final int WAITING_FOR_RESPONSE = 0xFFAA001;
+    private static final int CONNECTION_STARTING = 0xFFAA002;
+    private static final int CONNECTION_TIMEOUT = 0xFFAA003;
 
     @Getter
     private boolean alive;
@@ -39,15 +43,31 @@ public class ConnectionHandler {
                 alive = true;
                 InputStream inputStream = socket.getInputStream();
 
+                DataInputStream dis = new DataInputStream(inputStream);
+                int status = WAITING_FOR_RESPONSE;
+                while (status == WAITING_FOR_RESPONSE) {
+                    log.info("Ожидаем ответа...");
+                    status = dis.readInt();
+                }
+
+                if (status == CONNECTION_STARTING) {
+                    log.info("Ответ получен");
+                } else if (status == CONNECTION_TIMEOUT) {
+                    log.warn("Тайиаут соединения");
+                    alive = false;
+                    return;
+                } else {
+                    log.error("Недопустимый код ответа: {}", status);
+                    alive = false;
+                    throw new RuntimeException("Недопустимый код ответа");
+                }
+
                 Thread inputAudioReaderThread = audioPlayer.playStream(inputStream);
                 Thread outputAudioWriterThread = microphoneReader.startRecording(socket.getOutputStream());
 
                 log.info("Начало разговора");
-                log.info("1");
                 inputAudioReaderThread.join();
-                log.info("2");
                 outputAudioWriterThread.join();
-                log.info("3");
                 log.info("Разговор завершен");
             } catch (UnknownHostException e) {
                 throw new RuntimeException(e);
